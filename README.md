@@ -50,7 +50,7 @@ This sample app demonstrates how to integrate and use the Fund Kit Widget in a N
 
 To integrate the Fund Kit Widget into your Next.js project, follow these steps:
 
-1. Create a `config` object for the widget. You can learn more about the configuration options in the [AARC documentation](https://docs.aarc.xyz).
+1. Create a `config` object for the widget. You can learn more about the configuration options in the [AARC documentation](https://docs.aarc.xyz/developer-docs/fund-kit/fund-kit-widget/config).
 
 2. Set up `wagmiConfig` for the `WagmiProvider` and create a `queryClient` for the `QueryClientProvider`.
 
@@ -59,7 +59,7 @@ To integrate the Fund Kit Widget into your Next.js project, follow these steps:
    ```tsx
    import { WagmiProvider } from 'wagmi'
    import { QueryClientProvider } from 'react-query'
-   import { AarcSwitchWidgetProvider, AarcEthWalletConnector } from '@aarc-xyz/deposit-widget'
+   import { AarcSwitchWidgetProvider, AarcEthWalletConnector } from '@aarc-xyz/fund-kit-widget';
 
    function App({ children }) {
      return (
@@ -78,7 +78,7 @@ To integrate the Fund Kit Widget into your Next.js project, follow these steps:
 4. To open the widget, use the `useModal` hook:
 
    ```tsx
-   import { useModal } from '@aarc-xyz/deposit-widget'
+   import { useModal } from '@aarc-xyz/fund-kit-widget'
 
    export default function Home() {
      const { setOpenModal } = useModal()
