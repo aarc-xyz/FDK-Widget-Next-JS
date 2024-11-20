@@ -1,88 +1,108 @@
 "use client";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { WagmiProvider, createConfig, http } from "wagmi";
-import { polygon } from "wagmi/chains";
 import { AarcEthWalletConnector } from "@aarc-xyz/eth-connector";
+import "@aarc-xyz/eth-connector/styles.css";
 import {
-  AarcSwitchWidgetProvider,
+  AarcFundKitModal,
   FKConfig,
+  SourceConnectorName,
   ThemeName,
   TransactionErrorData,
   TransactionSuccessData,
-} from "@aarc-xyz/fund-kit-widget";
-import "@aarc-xyz/eth-connector/styles.css";
+} from "@aarc-xyz/fundkit-web-sdk";
+import { createContext, useContext, useRef } from "react";
 
 interface AarcProviderProps {
   children: React.ReactNode;
 }
 
+interface AarcContextType {
+  aarcModal: AarcFundKitModal | null;
+}
+
+const AarcContext = createContext<AarcContextType | undefined>(undefined);
+
+const queryClient = new QueryClient();
+
+const config: FKConfig = {
+  appName: "Dapp Name",
+  module: {
+    exchange: {
+      enabled: true,
+    },
+    onRamp: {
+      enabled: true,
+      onRampConfig: {
+        customerId: "323232323",
+        exchangeScreenTitle: "Deposit funds in your wallet",
+      },
+    },
+    bridgeAndSwap: {
+      enabled: true,
+      fetchOnlyDestinationBalance: false,
+      routeType: "Value",
+      connectors: [SourceConnectorName.ETHEREUM],
+    },
+  },
+  destination: {
+    walletAddress: "0xeDa8Dec60B6C2055B61939dDA41E9173Bab372b2",
+  },
+  appearance: {
+    themeColor: "#A5E547",
+    textColor: "#2D2D2D",
+    backgroundColor: "#FAFAFA",
+    dark: {
+      themeColor: "#A5E547", 
+      textColor: "#FFF", 
+      backgroundColor: "#2D2D2D", 
+      highlightColor: "#08091B", 
+      borderColor: "#424242",
+    },
+    theme: ThemeName.DARK,
+    roundness: 8,
+  },
+  apiKeys: {
+    aarcSDK: process.env.NEXT_PUBLIC_API_KEY ?? "",
+  },
+  events: {
+    onTransactionSuccess: (data: TransactionSuccessData) => {
+      console.log("client onTransactionSuccess", data);
+    },
+    onTransactionError: (data: TransactionErrorData) => {
+      console.log("client onTransactionError", data);
+    },
+    onWidgetClose: () => {
+      console.log("client onWidgetClose");
+    },
+    onWidgetOpen: () => {
+      console.log("client onWidgetOpen");
+    },
+  },
+  origin: typeof window !== "undefined" ? window.location.origin : "",
+};
+
 const AarcProvider = ({ children }: AarcProviderProps) => {
-  const config: FKConfig = {
-    appName: "Aarc Stage",
-    module: {
-      exchange: {
-        enabled: false,
-      },
-      onRamp: {
-        enabled: true,
-        onRampConfig: {
-          customerId: "123", // replace with any unique id for the user
-        },
-      },
-      bridgeAndSwap: {
-        enabled: true,
-        fetchOnlyDestinationBalance: false,
-        routeType: "Value",
-      },
-    },
-    destination: {
-      walletAddress: "0xeDa8Dec60B6C2055B61939dDA41E9173Bab372b2",
-    },
-    appearance: {
-      roundness: 42,
-      theme: ThemeName.DARK,
-    },
-
-    apiKeys: {
-      aarcSDK: process.env.NEXT_PUBLIC_API_KEY!,
-    },
-    events: {
-      onTransactionSuccess: (data: TransactionSuccessData) => {
-        console.log("onTransactionSuccess", data);
-      },
-      onTransactionError: (data: TransactionErrorData) => {
-        console.log("onTransactionError", data);
-      },
-      onWidgetClose: () => {
-        console.log("onWidgetClose");
-      },
-      onWidgetOpen: () => {
-        console.log("onWidgetOpen");
-      },
-    },
-  };
-
-  const wagmiConfig = createConfig({
-    chains: [polygon],
-    transports: {
-      [polygon.id]: http(),
-    },
-    ssr: true,
-  });
-
-  const queryClient = new QueryClient();
+  const aarcModalRef = useRef(new AarcFundKitModal(config));
+  const aarcModal = aarcModalRef.current;
 
   return (
-    <WagmiProvider config={wagmiConfig}>
-      <QueryClientProvider client={queryClient}>
-        {/* @ts-ignore */}
-        <AarcSwitchWidgetProvider config={config}>
-          <AarcEthWalletConnector>{children}</AarcEthWalletConnector>
-        </AarcSwitchWidgetProvider>
-      </QueryClientProvider>
-    </WagmiProvider>
+    <QueryClientProvider client={queryClient}>
+      <AarcEthWalletConnector aarcWebClient={aarcModal}>
+        <AarcContext.Provider value={{ aarcModal }}>
+          {children}
+        </AarcContext.Provider>
+      </AarcEthWalletConnector>
+    </QueryClientProvider>
   );
+};
+
+export const useAarcContext = () => {
+  const context = useContext(AarcContext);
+  if (!context) {
+    throw new Error("useAarcContext must be used within AarcProvider");
+  }
+  return context;
 };
 
 export default AarcProvider;

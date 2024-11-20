@@ -1,36 +1,52 @@
 "use client";
 
-import { useModal } from "@aarc-xyz/fund-kit-widget";
+import { useAarcContext } from "@/contexts/AarcProvider";
 
 export default function Home() {
-  const { setOpenModal, setDestinationTokenWithAddress } = useModal();
+  const { aarcModal } = useAarcContext();
 
   const updateDestination = async () => {
     try {
-      setDestinationTokenWithAddress(
-        "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359",
-        "137",
-        "1"
+      aarcModal?.updateDestinationWalletAddress(
+        "0x1234567890123456789012345678901234567890"
       );
+      aarcModal?.updateDestinationToken(
+        "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
+        42161,
+        0.01
+      );
+      aarcModal?.openModal();
     } catch (error) {
       console.error("Error updating destination token:", error);
     }
   };
 
   return (
-    <main className='flex min-h-screen flex-col items-center justify-between p-24'>
-      <div className='flex flex-col items-center'>
+    <main className="flex min-h-screen flex-col items-center justify-between p-24">
+      <div className="flex flex-col items-center">
         <button
-          className='p-2 bg-slate-700 text-white rounded-lg'
-          onClick={() => setOpenModal(true)}
+          className="p-2 bg-slate-700 text-white rounded-lg"
+          onClick={() => {
+            console.log("Open Widget");
+            aarcModal?.openModal();
+          }}
         >
           Open Widget
         </button>
         <button
-          className='p-2 mt-4 bg-slate-700 text-white rounded-lg'
+          className="p-2 mt-4 bg-slate-700 text-white rounded-lg"
           onClick={updateDestination}
         >
-          Update
+          Update 0.01 USDC (ARB)
+        </button>
+        <button
+          className="p-2 mt-4 bg-slate-700 text-white rounded-lg"
+          onClick={() => {
+            aarcModal?.reset();
+            aarcModal?.openModal();
+          }}
+        >
+          Reset
         </button>
       </div>
     </main>
