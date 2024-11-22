@@ -22,10 +22,13 @@ export default function Home() {
   };
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
+    <main className="flex flex-col items-center justify-between p-24">
       <div className="flex flex-col items-center">
+        <h1 className="text-4xl font-bold text-center">
+          Aarc FundKit Widget Example
+        </h1>
         <button
-          className="p-2 bg-slate-700 text-white rounded-lg"
+          className="p-2 mt-4 bg-slate-700 text-white rounded-lg"
           onClick={() => {
             console.log("Open Widget");
             aarcModal?.openModal();
