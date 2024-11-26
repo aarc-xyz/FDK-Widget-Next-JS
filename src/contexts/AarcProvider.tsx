@@ -25,7 +25,7 @@ const AarcContext = createContext<AarcContextType | undefined>(undefined);
 
 const queryClient = new QueryClient();
 
-const config: FKConfig = {
+export const config: FKConfig = {
   appName: "Dapp Name",
   module: {
     exchange: {
@@ -53,10 +53,10 @@ const config: FKConfig = {
     textColor: "#2D2D2D",
     backgroundColor: "#FAFAFA",
     dark: {
-      themeColor: "#A5E547", 
-      textColor: "#FFF", 
-      backgroundColor: "#2D2D2D", 
-      highlightColor: "#08091B", 
+      themeColor: "#A5E547",
+      textColor: "#FFF",
+      backgroundColor: "#2D2D2D",
+      highlightColor: "#08091B",
       borderColor: "#424242",
     },
     theme: ThemeName.DARK,
