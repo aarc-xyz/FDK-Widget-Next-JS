@@ -19,8 +19,8 @@ This sample app demonstrates how to integrate and use the Fund Kit Widget in a N
 1. Clone this repository:
 
    ```bash
-   git clone https://github.com/your-username/fund-kit-widget-sample-app.git
-   cd fund-kit-widget-sample-app
+   git clone https://github.com/aarc-xyz/FDK-Widget-Next-JS.git
+   cd FDK-Widget-Next-JS
    ```
 
 2. Install dependencies:
