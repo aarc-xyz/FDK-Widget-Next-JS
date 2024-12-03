@@ -24,7 +24,6 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <AarcProvider>{children}</AarcProvider>
-
         <ContractExecution />
       </body>
     </html>
