@@ -1,10 +1,17 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import "./globals.css";
+import "./styles/globals.css";
 import dynamic from "next/dynamic";
-import ContractExecution from "./executeContract";
 
 const AarcProvider = dynamic(() => import("../contexts/AarcProvider"), {
+  ssr: false,
+});
+
+const ContractExecution = dynamic(() => import("./executeContract"), {
+  ssr: false,
+});
+
+const ContractExecutionWithOnRamp = dynamic(() => import("./executeContractWithOnramp"), {
   ssr: false,
 });
 
@@ -24,7 +31,8 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <AarcProvider>{children}</AarcProvider>
-        <ContractExecution />
+        {/* <ContractExecution /> */}
+        <ContractExecutionWithOnRamp />
       </body>
     </html>
   );

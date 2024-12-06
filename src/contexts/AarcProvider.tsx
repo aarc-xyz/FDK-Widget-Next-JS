@@ -124,8 +124,8 @@ const AarcProvider = ({ children }: AarcProviderProps) => {
   }
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <WagmiProvider config={wagmiConfig}>
+    <WagmiProvider config={wagmiConfig}>
+      <QueryClientProvider client={queryClient}>
         <RainbowKitProvider>
           <AarcEthWalletConnector aarcWebClient={aarcModal}>
             <AarcContext.Provider value={{ aarcModal }}>
@@ -133,8 +133,8 @@ const AarcProvider = ({ children }: AarcProviderProps) => {
             </AarcContext.Provider>
           </AarcEthWalletConnector>
         </RainbowKitProvider>
-      </WagmiProvider>
-    </QueryClientProvider>
+      </QueryClientProvider>
+    </WagmiProvider>
   );
 };
 

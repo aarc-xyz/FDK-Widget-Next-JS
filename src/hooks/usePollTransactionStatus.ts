@@ -1,13 +1,14 @@
 "use client";
 
-import { aarcCoreSDK } from "@/app/executeContract";
+import { AarcCore } from "@aarc-xyz/core-viem";
 import { useCallback, useState, useEffect, useRef } from "react";
 
 export type PollStatus = "error" | "success" | "pending";
 
 type UsePollTransactionStatusProps = {
   requestId?: string;
-  txHash?: string;
+  enable?: boolean;
+  aarcCoreSDK: AarcCore;
   pollInterval?: number;
   maxPollingDuration?: number;
 };
@@ -114,14 +115,15 @@ function getStatusMessage(status: RoutingRequestStatus): string {
  * It will start polling when the requestId and txHash are provided.
  * Includes retry logic when the network is offline.
  * @param requestId The requestId of the transaction request
- * @param txHash The transaction hash of the request
+ * @param enable The transaction hash of the request
  * @param pollInterval The interval in milliseconds to poll the request status
  * @param maxPollingDuration The maximum duration in milliseconds to poll the request status
  * @returns isPolling: boolean, pollStatus: PollStatus, error: string | null | undefined, hasTimedOut: boolean
  */
 export const usePollTransactionStatusV2 = ({
   requestId,
-  txHash,
+  enable,
+  aarcCoreSDK,
   pollInterval = 5000,
   maxPollingDuration = 480000,
 }: UsePollTransactionStatusProps) => {
@@ -241,7 +243,7 @@ export const usePollTransactionStatusV2 = ({
   }, [requestId, maxPollingDuration, pollInterval]);
 
   useEffect(() => {
-    if (requestId && txHash) {
+    if (requestId && enable) {
       pollRequestStatus();
     }
     // Cleanup on unmount
@@ -254,7 +256,7 @@ export const usePollTransactionStatusV2 = ({
         clearTimeout(stopPollingTimeoutRef.current);
       }
     };
-  }, [requestId, txHash, pollRequestStatus]);
+  }, [requestId, enable, pollRequestStatus]);
 
   return {
     isPolling,

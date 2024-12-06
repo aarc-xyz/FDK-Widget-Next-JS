@@ -1,61 +1,16 @@
 "use client";
 
 import { config } from "@/contexts/AarcProvider";
-import { useState } from "react";
-import { useAccount, useChainId, useSwitchChain, useWalletClient } from "wagmi";
+import { useCallback, useState } from "react";
 import {
-  AarcCore,
-  BalancesData,
-  DepositAddressData,
+  AarcCore
 } from "@aarc-xyz/core-viem";
 
-import { WagmiProvider } from "wagmi";
-import { getDefaultConfig, RainbowKitProvider } from "@rainbow-me/rainbowkit";
-import {
-  arbitrum,
-  base,
-  mainnet,
-  optimism,
-  polygon,
-  linea,
-  avalanche,
-  bsc,
-} from "wagmi/chains";
-
-import { http } from "wagmi";
 import { ethers } from "ethers";
-import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { usePollTransactionStatusV2 } from "@/hooks/usePollTransactionStatus";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 const queryClient = new QueryClient();
-
-export const wagmiConfig = getDefaultConfig({
-  appName: "Aarc RainbowKit",
-  projectId: "55e9f7ac4cca250593e7ebee9a7925b4",
-  chains: [mainnet, polygon, optimism, arbitrum, base, linea, avalanche, bsc],
-  transports: {
-    [mainnet.id]: http(),
-    [polygon.id]: http(),
-    [optimism.id]: http(),
-    [arbitrum.id]: http(),
-    [base.id]: http(),
-    [linea.id]: http(),
-    [avalanche.id]: http(),
-    [bsc.id]: http(),
-  },
-});
-
-export const availableChains = [
-  mainnet,
-  polygon,
-  optimism,
-  arbitrum,
-  base,
-  linea,
-  avalanche,
-  bsc,
-];
 
 export enum TransferType {
   ONRAMP = "onramp",
@@ -71,15 +26,11 @@ export enum ProviderType {
 
 export const aarcCoreSDK = new AarcCore(config.apiKeys.aarcSDK);
 
-function ExecuteContract() {
+function ExecuteContractWithOnRamp() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [requestId, setRequestId] = useState<string>();
-  const [trxHash, setTrxHash] = useState<string>();
+  const [orderId, setOrderId] = useState<string>();
   const [error, setError] = useState<string | null>(null);
-  const { data: walletClient } = useWalletClient();
-  const chainId = useChainId();
-  const { chains, switchChain } = useSwitchChain();
-  const account = useAccount();
 
   const {
     error: pollingError,
@@ -89,7 +40,7 @@ function ExecuteContract() {
     pollingMessage,
   } = usePollTransactionStatusV2({
     requestId,
-    enable: !!trxHash,
+    enable: !!orderId,
     aarcCoreSDK
   });
 
@@ -99,41 +50,6 @@ function ExecuteContract() {
     decimals: 6,
     chainId: 8453,
     address: "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
-  };
-
-  const getMultichainBalance = async (
-    address: string,
-    extendedBalances?: boolean
-  ) => {
-    try {
-      const res = await aarcCoreSDK.fetchMultiChainBalances(address, {
-        tokenAddress: destinationToken.address,
-        tokenChainId: destinationToken.chainId,
-        tokenAmount: requestedAmount?.toString() ?? "1",
-      });
-
-      //@ts-ignore
-      if (res?.statusCode == 401) {
-        throw new Error("Invalid API key");
-      }
-      const chainId = destinationToken.chainId?.toString();
-
-      if (!chainId) {
-        throw new Error("Chain ID is missing");
-      }
-
-      if (res.data) {
-        let chainBalances = res.data.balances as unknown as BalancesData;
-        if (config?.module.bridgeAndSwap?.fetchOnlyDestinationBalance) {
-          chainBalances = { [chainId]: chainBalances[chainId] };
-        }
-        return chainBalances;
-      }
-      return {};
-    } catch (err) {
-      console.error("Error fetching balances: ", err);
-      throw err;
-    }
   };
 
   const getDepositAddress = async ({
@@ -171,8 +87,8 @@ function ExecuteContract() {
     };
   }> => {
     try {
-      const transferType = TransferType.WALLET;
-      const provider = undefined; // in case of onramp or cex
+      const transferType = TransferType.ONRAMP;
+      const provider = ProviderType.MOONPAY; // in case of onramp or cex
 
       const contract = {
         contractPayload,
@@ -194,6 +110,7 @@ function ExecuteContract() {
       };
 
       // Handle parameters based on transferType
+      // @ts-ignore
       if (transferType === TransferType.WALLET) {
         if (!fromToken)
           throw new Error("fromToken is required for wallet transfer");
@@ -206,7 +123,6 @@ function ExecuteContract() {
         payload.fromAmount = baseFromAmountBN.toString();
         payload.fromChainId = fromToken.chainId?.toString() ?? "";
         payload.fromTokenAddress = fromToken.address ?? "";
-        payload.fromAddress = account.address ?? "";
       } else if (
         transferType === TransferType.ONRAMP ||
         transferType === TransferType.CEX
@@ -258,83 +174,32 @@ function ExecuteContract() {
     ]);
   }
 
-  const handleExecuteToAddress = async ({
-    depositData,
-  }: {
-    depositData: DepositAddressData;
-  }): Promise<string> => {
-    try {
-      if (!depositData) {
-        throw new Error("Deposit data is missing");
-      }
-
-      const signer = walletClient;
-      if (!signer) throw new Error("Signer is missing");
-
-      if (chainId !== Number(depositData.txData.chainId))
-        await switchChain({
-          chainId: Number(depositData.txData.chainId),
-        });
-
-      const trxHash = await signer.sendTransaction({
-        to: depositData.txData.to,
-        value: depositData.txData.value,
-        data: depositData.txData.data,
-        gasLimit: depositData.txData.gasLimit,
-        chainId: depositData.txData.chainId,
-        from: depositData.txData.from,
-      });
-
-      console.debug("Transaction hash: ", trxHash);
-
-      if (!trxHash) throw new Error("Transaction hash is missing");
-
-      try {
-        // update aarc about tx hash
-        await aarcCoreSDK.postExecuteToAddress({
-          depositData,
-          trxHash,
-        });
-      } catch (err) {
-        console.error("Error post execute call: ", err);
-      }
-      return trxHash;
-    } catch (err) {
-      console.error("Error executing to address: ", err);
-      throw err;
-    }
-  };
-
   const handleSubmitContract = async () => {
     setIsLoading(true);
-    setTrxHash("");
+    setOrderId("");
     setError(null);
     setRequestId("");
 
     try {
+      // Generate the contract call data
       const payload = generateCheckoutCallData(
         "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
         "0xeDa8Dec60B6C2055B61939dDA41E9173Bab372b2",
-        "10000"
+        "35000000"
       );
-      if (!account.address) {
-        alert("Please connect your wallet first");
-        return;
-      }
-      const balance = await getMultichainBalance(account.address ?? "");
-      console.log("balance", balance);
 
-      /**
-       * Select a from token with proper balance from the above response, for different wallets the response will be different,
-       * we are currently selecting a random token from the response.
-       *
+      /*
        * Example of fromToken:
        * ChainId: 8453
        * fromTokenAddress: 0x833589fcd6edb6e08f4c7c32d4f71b54bda02913
        * fromAddress: 0xeDa8Dec60B6C2055B61939dDA41E9173Bab372b2
        */
-      const fromToken =
-        balance[destinationToken?.chainId?.toString() ?? ""]?.balances?.[0];
+      const fromToken = {
+        chainId: 8453,
+        token_address: "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+        amount_required: "35",
+        decimals: 6,
+      };
 
       if (!fromToken) {
         alert(
@@ -355,46 +220,98 @@ function ExecuteContract() {
       setRequestId(depositAddressData.requestId);
       console.log("depositAddressData", depositAddressData);
 
-      const trxHash = await handleExecuteToAddress({
-        depositData: depositAddressData,
+      // Using moonpay for onramp (you can also use kado)
+      const url = await aarcCoreSDK.generateMoonpayOnrampUrl({
+        walletAddress: depositAddressData.depositAddress,
+        defaultCryptoCurrencyCode: depositAddressData.depositTokenSymbol,
+        fiatAmount: fromToken.amount_required,
+        fiatCurrencyCode: "USD",
+        network: "BASE",
+        cryptoTokenData: {
+          tokenAmount: fromToken.amount_required,
+          tokenCode: depositAddressData.depositTokenSymbol ?? "ETH",
+        },
       });
+      console.log("url", url);
+      if (!url || url instanceof Error)
+        throw new Error("Error generating onramp url");
+      const windowRef = window.open(url, "_blank");
+      if (!windowRef) throw new Error("Error opening onramp window");
 
-      setTrxHash(trxHash);
+      listenToOnrampEvents(windowRef);
     } catch (err) {
       console.error("Error executing contract: ", err);
+      //@ts-ignore
       setError(err.message);
     } finally {
       setIsLoading(false);
     }
   };
 
+  const listenToOnrampEvents = useCallback(async (windowRef: Window) => {
+    const listener = (e: MessageEvent<any>) => {
+      if (e.data === "closed_by_user") {
+        // Remove the listener
+        console.debug("User closed the window");
+        window.removeEventListener("message", listener);
+        setError("User closed the window");
+        return;
+      } else if (e.data.eventName == "ONRAMP_ORDER_SUCCESSFUL") {
+        console.debug("ONRAMP_ORDER_SUCCESSFUL", e.data);
+        setOrderId(e.data?.orderId);
+
+        window.removeEventListener("message", listener);
+        // Close the window
+        if (windowRef) {
+          windowRef.close();
+        }
+        setIsLoading(false);
+        return;
+      } else if (e.data.eventName === "ONRAMP_ORDER_CREATED") {
+        console.debug("ONRAMP_ORDER_CREATED", e.data);
+        setOrderId(e.data?.orderId);
+        setIsLoading(false);
+        return;
+      } else if (e.data.eventName === "ONRAMP_ORDER_FAILED") {
+        console.debug("ONRAMP_ORDER_FAILED", e.data);
+        setOrderId(e.data?.orderId);
+        setError("Order failed");
+        window.removeEventListener("message", listener);
+        return;
+      }
+      return;
+    };
+
+    // Add the listener and store it in the ref
+    window.addEventListener("message", listener);
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    return () => window.removeEventListener("message", listener);
+  }, []);
+
   return (
     <div className="mt-4">
-      Aarc Core SDK Script example:
+      Aarc Core SDK Contract execution with OnRamp example:
       <div className="flex flex-row items-center justify-center gap-3">
-        <ConnectButton />
         <button
           onClick={handleSubmitContract}
           className="p-2 mt-4 bg-slate-700 text-white rounded-lg"
         >
-          {isLoading ? "Executing..." : "Submit Contract"}
+          {isLoading ? "Executing..." : "Submit Contract (Moonpay)"}
         </button>
       </div>
+      {error && <div>Error: {error}</div>}
       {pollingMessage && <div>Tx Status : {pollingMessage}</div>}
       {pollingError && <div>error: {pollingError}</div>}
     </div>
   );
 }
 
-export default function ContractExecution() {
+export default function ContractExecutionWithOnRamp() {
   return (
     <main className="flex flex-col items-center justify-between p-24">
       <QueryClientProvider client={queryClient}>
-        <WagmiProvider config={wagmiConfig}>
-          <RainbowKitProvider>
-            <ExecuteContract />
-          </RainbowKitProvider>
-        </WagmiProvider>
+        <ExecuteContractWithOnRamp />
       </QueryClientProvider>
     </main>
   );
