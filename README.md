@@ -63,38 +63,68 @@ To integrate the Fund Kit Widget into your Next.js project, follow these steps:
 
 3. Wrap your root component with the necessary providers:
 
-   ```tsx
-   import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-   import { AarcEthWalletConnector } from "@aarc-xyz/eth-connector";
-   import "@aarc-xyz/eth-connector/styles.css";
-   import { config } from "@/config";
-   import { AarcFundKitModal, FKConfig } from "@aarc-xyz/fundkit-web-sdk";
-   const queryClient = new QueryClient();
-   const aarcModal = new AarcFundKitModal(config);
-   function App({ children }) {
-     return (
-       <QueryClientProvider client={queryClient}>
-         <AarcEthWalletConnector aarcWebClient={aarcModal}>
-           {children}
-         </AarcEthWalletConnector>
-       </QueryClientProvider>
-     );
-   }
-   ```
+```tsx
+import "@aarc-xyz/eth-connector/styles.css";
+import {
+  AarcFundKitModal,
+  SourceConnectorName
+} from "@aarc-xyz/fundkit-web-sdk";
+import { createContext, useContext, useRef } from "react";
+import { useEffect } from "react";
+import dynamic from "next/dynamic";
+import { http, WagmiProvider } from "wagmi";
+import { getDefaultConfig, RainbowKitProvider } from "@rainbow-me/rainbowkit";
+import { AarcEthWalletConnector } from "@aarc-xyz/eth-connector";
+import wagmiCOnfig from "your-wagmi-config";
+import { aarcConfig } from "your-aarc-config"
+
+const AarcContext = createContext<AarcContextType | undefined>(undefined);
+
+const queryClient = new QueryClient();
+
+const AarcProvider = ({ children }: AarcProviderProps) => {
+  const aarcModalRef = useRef<AarcFundKitModal | null>(
+    new AarcFundKitModal(aarcConfig)
+  );
+
+  const aarcModal = aarcModalRef.current;
+
+  if (!aarcModal) {
+    return null; // Or a fallback UI while initializing
+  }
+
+  return (
+    <WagmiProvider config={wagmiConfig}>
+      <QueryClientProvider client={queryClient}>
+        <RainbowKitProvider>
+          <AarcEthWalletConnector aarcWebClient={aarcModal}>
+            <AarcContext.Provider value={{ aarcModal }}>
+              {children}
+            </AarcContext.Provider>
+          </AarcEthWalletConnector>
+        </RainbowKitProvider>
+      </QueryClientProvider>
+    </WagmiProvider>
+  );
+};
+```
 
 4. To open the widget, use the `aarcModal` class:
-    ```tsx
-    export default function Home() {
-      return (
-        <div>
-          <button
-            onClick={() => {
-              aarcModal?.openModal();
-            }}
-          >
-            Open Fund Kit Widget
-          </button>
-        </div>
-      );
-    }
-    ```
+
+```tsx
+import { useAarcContext } from "@/contexts/AarcProvider";
+
+export default function Home() {
+  const { aarcModal } = useAarcContext();
+
+  return (
+        <button
+          onClick={() => {
+            aarcModal?.openModal();
+          }}
+        >
+          Open Aarc Widget
+        </button>
+  );
+}
+```
