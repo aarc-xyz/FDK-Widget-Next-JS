@@ -11,8 +11,6 @@ import {
   TransactionSuccessData,
 } from "@aarc-xyz/fundkit-web-sdk";
 import { createContext, useContext, useRef } from "react";
-import { useEffect } from "react";
-import dynamic from "next/dynamic";
 import { http, WagmiProvider } from "wagmi";
 import { getDefaultConfig, RainbowKitProvider } from "@rainbow-me/rainbowkit";
 import {
@@ -26,6 +24,7 @@ import {
   bsc,
 } from "wagmi/chains";
 import { AarcEthWalletConnector } from "@aarc-xyz/eth-connector";
+import { CustomWalletConnectWrapper } from "@/utils/CustomWalletConnector";
 
 export const wagmiConfig = getDefaultConfig({
   appName: "Aarc RainbowKit",
@@ -127,11 +126,10 @@ const AarcProvider = ({ children }: AarcProviderProps) => {
     <WagmiProvider config={wagmiConfig}>
       <QueryClientProvider client={queryClient}>
         <RainbowKitProvider>
-          <AarcEthWalletConnector aarcWebClient={aarcModal}>
-            <AarcContext.Provider value={{ aarcModal }}>
-              {children}
-            </AarcContext.Provider>
-          </AarcEthWalletConnector>
+          <CustomWalletConnectWrapper client={aarcModal} />
+          <AarcContext.Provider value={{ aarcModal }}>
+            {children}
+          </AarcContext.Provider>
         </RainbowKitProvider>
       </QueryClientProvider>
     </WagmiProvider>
