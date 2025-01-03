@@ -114,7 +114,7 @@ export const config: FKConfig = {
 
 const AarcProvider = ({ children }: AarcProviderProps) => {
     const aarcModalRef = useRef<AarcFundKitModal | null>(
-        new AarcFundKitModal(config, "dev", "https://iframe-widget-v3.aarc.xyz")
+        new AarcFundKitModal(config)
     )
 
     const aarcModal = aarcModalRef.current
