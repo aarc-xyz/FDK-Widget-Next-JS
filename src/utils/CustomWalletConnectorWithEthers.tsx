@@ -237,7 +237,7 @@ export class AarcEthersEthereumSigner {
 
     /**
      * Optional: track a "current" block explorer URL if you want to store it
-     * after switching to a known chain. If not needed, you can remove.
+     * after switching to a known chain. If not needed, you can remove. it helps internal UI to get the block explorer URL.
      */
     public blockChainExplorerUrl?: string
 
