@@ -23,9 +23,7 @@ import {
     avalanche,
     bsc,
 } from "wagmi/chains"
-import { AarcEthWalletConnector } from "@aarc-xyz/eth-connector"
-import { CustomWalletConnectWrapper } from "@/utils/CustomWalletConnector"
-import { CustomWalletConnectEthersWrapper } from "@/utils/CustomWalletConnectorWithEthers"
+import { ReownWalletConnectWrapper } from "@/utils/ReownWalletConnector"
 
 export const wagmiConfig = getDefaultConfig({
     appName: "Aarc RainbowKit",
@@ -127,7 +125,7 @@ const AarcProvider = ({ children }: AarcProviderProps) => {
         <WagmiProvider config={wagmiConfig}>
             <QueryClientProvider client={queryClient}>
                 <RainbowKitProvider>
-                    <CustomWalletConnectEthersWrapper client={aarcModal} />
+                    <ReownWalletConnectWrapper client={aarcModal} />
                     <AarcContext.Provider value={{ aarcModal }}>
                         {children}
                     </AarcContext.Provider>
