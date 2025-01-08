@@ -16,7 +16,18 @@ import {
     useWalletInfo,
 } from "@reown/appkit/react"
 import { EthersAdapter } from "@reown/appkit-adapter-ethers"
-import { mainnet, arbitrum, AppKitNetwork } from "@reown/appkit/networks"
+import {
+    arbitrum,
+    avalanche,
+    base,
+    linea,
+    mainnet,
+    opBNB,
+    optimism,
+    polygon,
+    scroll,
+    AppKitNetwork,
+} from "@reown/appkit/networks"
 import { BrowserProvider, Signer } from "ethers"
 import { Eip1193Provider } from "ethers"
 import { JsonRpcSigner } from "ethers"
@@ -32,7 +43,17 @@ const metadata = {
     icons: ["https://avatars.mywebsite.com/"],
 }
 
-const KNOWN_NETWORKS: [AppKitNetwork, ...AppKitNetwork[]] = [mainnet, arbitrum]
+const KNOWN_NETWORKS: [AppKitNetwork, ...AppKitNetwork[]] = [
+    mainnet,
+    arbitrum,
+    base,
+    optimism,
+    opBNB,
+    polygon,
+    avalanche,
+    linea,
+    scroll,
+]
 
 const KNOWN_CHAINS: Record<number, ChainDefinition> = KNOWN_NETWORKS.reduce(
     (acc, chain) => {
@@ -79,12 +100,13 @@ export function ReownWalletConnectWrapper({
     const switchChain = useCallback(
         async ({ chainId }: { chainId: number }): Promise<void> => {
             const network = KNOWN_NETWORKS.find(
-                (network) => network.id === chainId
+                (network) => +network.id === +chainId
             )
             if (!network) {
                 throw new Error("Unknown network")
             }
             await switchNetwork(network)
+            modal.switchNetwork(network)
         },
         [switchNetwork]
     )
@@ -101,9 +123,8 @@ export function ReownWalletConnectWrapper({
 
     useEffect(() => {
         const fn = async () => {
-            const provider = new BrowserProvider(
-                walletProvider as Eip1193Provider
-            )
+            if (!walletProvider) return
+            const provider = new BrowserProvider(walletProvider as Eip1193Provider)
             const signer = await provider.getSigner()
             const _walletClient = new AarcEthereumSigner(
                 signer as JsonRpcSigner
@@ -112,8 +133,6 @@ export function ReownWalletConnectWrapper({
         }
         fn()
     }, [walletProvider])
-
-    console.log("walletProvider", walletProvider)
 
     return (
         <InitAarcWithEthWalletListener
@@ -138,6 +157,7 @@ export function ReownWalletConnectWrapper({
             disconnectAsync={combinedDisconnect}
             onClickConnect={onClickConnect}
             gasPrice={undefined}
+            // @ts-expect-error - `types` will be updated in next eth-connector release
             walletClient={walletClient}
             switchChain={switchChain}
         />
