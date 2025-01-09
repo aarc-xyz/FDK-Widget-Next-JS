@@ -163,5 +163,5 @@ Need help? Join our [Discord community](https://discord.com/invite/XubvAjtpM7) o
 ---
 
 <div align="center">
-Built with ❤️ by the [Aarc](https://aarc.xyz/) team
+Built with ❤️ by the <a href="https://aarc.xyz/"> Aarc </a> team
 </div>
