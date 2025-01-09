@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![AARC Logo](https://docs.aarc.xyz/img/aarc.svg)
+![Aarc logo](https://docs.aarc.xyz/~gitbook/image?url=https%3A%2F%2F2121962569-files.gitbook.io%2F%7E%2Ffiles%2Fv0%2Fb%2Fgitbook-x-prod.appspot.com%2Fo%2Fspaces%252FfkVTcYLDkf0mcGW9zUvc%252Ficon%252FXtUcMbVRcCfcJqlZizrq%252F1.png%3Falt%3Dmedia%26token%3De011d1c3-bb05-417f-82ac-273ca8e40dd5&width=32&dpr=1&quality=100&sign=949106d8&sv=2)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Next.js](https://img.shields.io/badge/Next.js-13.0+-black)](https://nextjs.org/)
@@ -10,15 +10,6 @@
 
 A production-ready sample application demonstrating the integration of AARC's Fund Kit Widget with Next.js
 </div>
-
-## 🚀 Features
-
-- **Seamless Integration**: Easy-to-follow setup with Next.js
-- **Type Safety**: Built with TypeScript for robust development
-- **Modern Stack**: Uses React Query for efficient state management
-- **Wallet Integration**: Pre-configured WagmiProvider for Web3 wallet connections
-- **Customizable**: Flexible widget configuration options
-- **Developer Friendly**: Comprehensive documentation and examples
 
 ## 📋 Prerequisites
 
@@ -155,7 +146,7 @@ For detailed information about the Fund Kit Widget and its capabilities, visit o
 - [Getting Started](https://docs.aarc.xyz/developer-docs/developers/widget)
 - [Widget Configuration](https://docs.aarc.xyz/developer-docs/fund-kit/fund-kit-widget/config)
 - [API Reference](https://docs.aarc.xyz/developer-docs/fund-kit/fund-kit-widget/api-reference)
-- [Integration Examples](https://docs.aarc.xyz/developer-docs/fund-kit/fund-kit-widget/examples)
+- [Integration Examples](https://docs.aarc.xyz/developer-docs/developers/cookbook)
 
 ## 🤝 Contributing
 
@@ -167,10 +158,10 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🙋‍♂️ Support
 
-Need help? Join our [Discord community](https://discord.gg/your-discord) or create an issue in the GitHub repository.
+Need help? Join our [Discord community](https://discord.com/invite/XubvAjtpM7) or create an issue in the GitHub repository.
 
 ---
 
 <div align="center">
-Built with ❤️ by the AARC team
+Built with ❤️ by the [Aarc](https://aarc.xyz/) team
 </div>
