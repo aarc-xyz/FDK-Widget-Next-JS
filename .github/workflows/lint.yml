@@ -1,0 +1,54 @@
+name: Lint
+
+# Triggered on all pull requests and pushes to main and develop
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches:
+      - '**'  # This matches all branch names
+  push:
+    branches: 
+      - main
+      - dev
+
+# Permissions needed for PR checks
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  lint:
+    name: Run linters
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Fetches all history for all branches and tags
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Cache eslint results
+        uses: actions/cache@v3
+        with:
+          path: .eslintcache
+          key: ${{ runner.os }}-eslint-${{ hashFiles('**/.eslintrc.*') }}
+          restore-keys: |
+            ${{ runner.os }}-eslint-
+
+      - name: Run linting
+        run: npm run lint
+
+      - name: Check formatting
+        run: npm run format:check
+
+      - name: Type check
+        run: npm run type-check
