@@ -7,6 +7,7 @@ export default function Home() {
 
   const updateDestination = async () => {
     try {
+      aarcModal?.reset();
       aarcModal?.updateDestinationWalletAddress(
         "0x1234567890123456789012345678901234567890"
       );
@@ -30,6 +31,7 @@ export default function Home() {
         <button
           className="p-2 mt-4 bg-slate-700 text-white rounded-lg"
           onClick={() => {
+            aarcModal?.reset();
             console.log("Open Widget");
             aarcModal?.openModal();
           }}
@@ -40,16 +42,7 @@ export default function Home() {
           className="p-2 mt-4 bg-slate-700 text-white rounded-lg"
           onClick={updateDestination}
         >
-          Update 0.01 USDC (ARB)
-        </button>
-        <button
-          className="p-2 mt-4 bg-slate-700 text-white rounded-lg"
-          onClick={() => {
-            aarcModal?.reset();
-            aarcModal?.openModal();
-          }}
-        >
-          Reset
+          Preselect 0.01 USDC (ARB)
         </button>
       </div>
     </main>
