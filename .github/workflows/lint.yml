@@ -1,24 +1,20 @@
 name: Lint
 
+# Triggered on all pull requests and pushes to main and develop
 on:
-  push:
-    branches: [ main, develop ]
-    paths:
-      - '**.js'
-      - '**.jsx'
-      - '**.ts'
-      - '**.tsx'
-      - '**.json'
-      - '.github/workflows/lint.yml'
   pull_request:
-    branches: [ main, develop ]
-    paths:
-      - '**.js'
-      - '**.jsx'
-      - '**.ts'
-      - '**.tsx'
-      - '**.json'
-      - '.github/workflows/lint.yml'
+    types: [opened, synchronize, reopened]
+    branches:
+      - '**'  # This matches all branch names
+  push:
+    branches: 
+      - main
+      - dev
+
+# Permissions needed for PR checks
+permissions:
+  contents: read
+  pull-requests: read
 
 jobs:
   lint:
@@ -28,6 +24,8 @@ jobs:
     steps:
       - name: Check out Git repository
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Fetches all history for all branches and tags
 
       - name: Set up Node.js
         uses: actions/setup-node@v3
