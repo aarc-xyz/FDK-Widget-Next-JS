@@ -1,7 +1,6 @@
 "use client";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { AarcEthWalletConnector } from "@aarc-xyz/eth-connector";
 import "@aarc-xyz/eth-connector/styles.css";
 import {
   AarcFundKitModal,
@@ -12,6 +11,36 @@ import {
   TransactionSuccessData,
 } from "@aarc-xyz/fundkit-web-sdk";
 import { createContext, useContext, useRef } from "react";
+import { http, WagmiProvider } from "wagmi";
+import { getDefaultConfig, RainbowKitProvider } from "@rainbow-me/rainbowkit";
+import {
+  arbitrum,
+  base,
+  mainnet,
+  optimism,
+  polygon,
+  linea,
+  avalanche,
+  bsc,
+} from "wagmi/chains";
+import { AarcEthWalletConnector } from "@aarc-xyz/eth-connector";
+import { CustomWalletConnectWrapper } from "@/utils/CustomWalletConnector";
+
+export const wagmiConfig = getDefaultConfig({
+  appName: "Aarc RainbowKit",
+  projectId: "55e9f7ac4cca250593e7ebee9a7925b4",
+  chains: [mainnet, polygon, optimism, arbitrum, base, linea, avalanche, bsc],
+  transports: {
+    [mainnet.id]: http(),
+    [polygon.id]: http(),
+    [optimism.id]: http(),
+    [arbitrum.id]: http(),
+    [base.id]: http(),
+    [linea.id]: http(),
+    [avalanche.id]: http(),
+    [bsc.id]: http(),
+  },
+});
 
 interface AarcProviderProps {
   children: React.ReactNode;
@@ -83,17 +112,27 @@ export const config: FKConfig = {
 };
 
 const AarcProvider = ({ children }: AarcProviderProps) => {
-  const aarcModalRef = useRef(new AarcFundKitModal(config));
+  const aarcModalRef = useRef<AarcFundKitModal | null>(
+    new AarcFundKitModal(config)
+  );
+
   const aarcModal = aarcModalRef.current;
 
+  if (!aarcModal) {
+    return null; // Or a fallback UI while initializing
+  }
+
   return (
-    <QueryClientProvider client={queryClient}>
-      <AarcEthWalletConnector aarcWebClient={aarcModal}>
-        <AarcContext.Provider value={{ aarcModal }}>
-          {children}
-        </AarcContext.Provider>
-      </AarcEthWalletConnector>
-    </QueryClientProvider>
+    <WagmiProvider config={wagmiConfig}>
+      <QueryClientProvider client={queryClient}>
+        <RainbowKitProvider>
+          <CustomWalletConnectWrapper client={aarcModal} />
+          <AarcContext.Provider value={{ aarcModal }}>
+            {children}
+          </AarcContext.Provider>
+        </RainbowKitProvider>
+      </QueryClientProvider>
+    </WagmiProvider>
   );
 };
 
